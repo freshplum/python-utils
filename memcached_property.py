@@ -3,7 +3,7 @@ try:
     from plum.settings import ALLOW_CACHING, CACHE_TIMEOUT
 except ImportError:
     ALLOW_CACHING = True
-    CACHE_TIMEOUT = 60
+    CACHE_TIMEOUT = 300
     
 class MemcachedClass(object):
     #_ckey_uid_name = 'ckey_uid'
@@ -42,9 +42,11 @@ class MemcachedProperty(object):
             value = self.fget(obj)
         else:
             value = cache.get(self._ckey(obj))
-            if not value:
+            if value == None:
+                #print 'cache MISS %s ' % self._ckey(obj)
                 value = self.fget(obj)
             else:
+                #print 'cache HIT %s: ' % self._ckey(obj)
                 pass
         self._save_to_cache(obj, value)
         return value
@@ -65,6 +67,8 @@ class MemcachedProperty(object):
     def _save_to_cache(self, obj, value):
         if not self.dont_cache and ALLOW_CACHING:
             cache.set(self._ckey(obj), value, CACHE_TIMEOUT)
+            #print cache.get(self._ckey(obj))
+            #print 'eval to %s' % (cache.get(self._ckey(obj)) or "THIS")
             return True
         return False
 
