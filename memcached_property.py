@@ -1,23 +1,18 @@
 from django.core.cache import cache
 try:
-    from plum.settings import ALLOW_CACHING, CACHE_TIMEOUT
+    from plum.settings import ALLOW_CACHING
 except ImportError:
     ALLOW_CACHING = True
-    CACHE_TIMEOUT = 300
+    
+try:
+    from plum.settings import CACHE_TIMEOUT
+except ImportError:
+    CACHE_TIMEOUT = 5
     
 class MemcachedClass(object):
-    #_ckey_uid_name = 'ckey_uid'
     def __init__(self, ckey_uid=None):
         pass
-        """
-        print self.get_ckey_uid
-        if not ckey_uid:
-            if hasattr(super(MemcachedClass, self), 'get_ckey_uid'):
-                self.ckey_uid = getattr(self, 'get_ckey_uid')
-            elif hasattr(self, 'id'):
-                self.ckey_uid = getattr(self, 'id')
-        print self.ckey_uid
-        """
+
     @property
     def ckey(self):
         key = self.__class__.__name__
@@ -43,10 +38,8 @@ class MemcachedProperty(object):
         else:
             value = cache.get(self._ckey(obj))
             if value == None:
-                #print 'cache MISS %s ' % self._ckey(obj)
                 value = self.fget(obj)
             else:
-                #print 'cache HIT %s: ' % self._ckey(obj)
                 pass
         self._save_to_cache(obj, value)
         return value
@@ -66,12 +59,8 @@ class MemcachedProperty(object):
 
     def _save_to_cache(self, obj, value):
         if not self.dont_cache and ALLOW_CACHING:
-            cache.set(self._ckey(obj), value, CACHE_TIMEOUT)
-            #print cache.get(self._ckey(obj))
-            #print 'eval to %s' % (cache.get(self._ckey(obj)) or "THIS")
-            return True
+            return cache.set(self._ckey(obj), value)
         return False
 
     
 
-        
