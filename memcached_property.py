@@ -33,7 +33,7 @@ class MemcachedProperty(object):
         self.dont_cache = dont_cache
     
     def __get__(self, obj, klass=None):
-        if not self.try_cache or not ALLOW_CACHING:
+        if not self.try_cache or not ALLOW_CACHING or hasattr(obj, 'no_cache'):
             value = self.fget(obj)
         else:
             value = cache.get(self._ckey(obj))
@@ -58,7 +58,7 @@ class MemcachedProperty(object):
         return '%s_%s' % (ckey, self.fget.__name__)
 
     def _save_to_cache(self, obj, value):
-        if not self.dont_cache and ALLOW_CACHING:
+        if not self.dont_cache and ALLOW_CACHING and not hasattr(obj, 'no_cache'):
             return cache.set(self._ckey(obj), value)
         return False
 
