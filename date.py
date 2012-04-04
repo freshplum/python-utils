@@ -32,19 +32,19 @@ G = {
         'DAY'   : 3
     }
 
-def floor(dt, granularity):
+def floor(dt, granularity='SECOND'):
     """
     Floors (similar to math.floor) the date to nearest day, hour, minute, or second
     """
-    g = G.get(granularity.upper(), 6)
+    g = G[granularity.upper()]
     return datetime.datetime(*dt.timetuple()[0:g])
 
 
-def ceil(dt, granularity):
+def ceil(dt, granularity='SECOND'):
     """
     Similar to math.ceil.  Rounds time up to nearest day, hour, minute, or second.
     """
-    g = G.get(granularity.upper(), 6)
+    g = G[granularity.upper()]
     d = list(dt.timetuple()[:g])
 
     #Check if any of the less significant times exist and are not 0
