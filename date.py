@@ -1,20 +1,38 @@
 import datetime
+from dateutil import parser, tz
 
 from . import fill
 
 LONG_TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S"
 SHORT_TIMESTAMP_FORMAT = "%Y-%m-%d"
 
-def deserialize_timestamp(dt_string, format=LONG_TIMESTAMP_FORMAT, short=False):
+def deserialize_timestamp(dt_string, *args, **kwargs):
     """
     Takes a timestamp string and returns a datetime object.
 
-    short    an optional flag indicating the use of the short format
-    format   an optional format string that overrides the default format
+    This function parses a datetime object from a timestamp using the
+    dateutil.parser.parse method. The parse method could be used directly,
+    but this method ensures that certain default settings are passed in
     """
-    if short:
-        format = SHORT_TIMESTAMP_FORMAT
-    return datetime.datetime.strptime(dt_string, format)
+    dt = parser.parse(dt_string, dayfirst=False, yearfirst=True, fuzzy=True)
+
+    # If the timestamp contained some time zone information, convert it to UTC
+    # time and remove the tzinfo object from the resultant datetime object.
+    if dt.tzinfo:
+        dt = dt.astimezone(tz.tzutc())
+        # FIXIT: The reason for removing the tzinfo object is that we only deal
+        #        with UTC time in our app, so all datetime objects do not have
+        #        tzinfo objects. It can cause problems in some places if they do
+        #        due to the fact that we are using the datetime objects as dict
+        #        keys (specifically, the predict function in stats.py has this
+        #        problem and should probably be fixed).
+        #
+        #        This problem has been recorded as Github Issue #452.
+        dt = dt.replace(tzinfo=None)
+    # else:
+    #     dt = dt.replace(tzinfo=tz.tzutc())
+
+    return dt
 
 def serialize_timestamp(dt_object, format=LONG_TIMESTAMP_FORMAT, short=False):
     """
